@@ -9,4 +9,4 @@ struct WORD{
     long int count;
 };
 
-void parse(std::queue<std::string>, const char*);
+void parse(std::vector<std::string> sms, const char*);
