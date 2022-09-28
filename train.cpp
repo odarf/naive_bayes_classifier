@@ -1,46 +1,52 @@
 #include <cstring>
+#include <chrono>
+#include <thread>
 #include "train.h"
 
 int main(int argc, char const *argv[]){
- std::cout << "In main..." << std::endl;
- std::vector<std::string> hamSMS;
- std::vector<std::string> spamSMS;
+ std::queue<std::string> hamSMS;
+ std::queue<std::string> spamSMS;
 
- int spamCount = 0;
- int hamCount = 0;
+ long int spamCount = 0;
+ long int hamCount = 0;
  std::string type;
  std::string newSMS;
- std::ifstream fin(argv[2]);
+ std::cout << "Created variables, starting ifstream" << std::endl;
+ std::ifstream fin(argv[1]);
+ std::cout << "Done ifstream, starting getline" << std::endl;
  getline(fin, newSMS);
+ std::cout << "Done getline" << std::endl;
  newSMS.clear();
 
+ std::cout << "Starting while loop" << std::endl;
  while(!fin.eof()){
      getline(fin, type, ',');
      getline(fin, newSMS);
      if(type == "ham"){
-         hamSMS.push_back(newSMS);
+         hamSMS.push(newSMS);
          type.clear();
          newSMS.clear();
          hamCount++;
      }else if(type == "spam"){
-         spamSMS.push_back(newSMS);
+         spamSMS.push(newSMS);
          type.clear();
          newSMS.clear();
          spamCount++;
      }
+     std::cout << "End of loop, ham count is: " << hamCount << ", spam count is: " << spamCount << std::endl;
  }
  fin.close();
- parse(hamSMS, argv[4]);
- parse(spamSMS, argv[6]);
+ parse(hamSMS, argv[2]);
+ parse(spamSMS, argv[3]);
 
  return 0;
 }
 
-void parse(std::vector<std::string> sms, const char* file){
+void parse(std::queue<std::string> sms, const char* file){
     std::cout << "In parse now..." << std::endl;
     std::vector<std::string> words;
-    std::vector<WORD> wordsCount;
-    int totalWordCount = 0;
+    std::queue<WORD> wordsCount;
+    long int totalWordCount = 0;
     while(!sms.empty()){
         std::string buff = sms.front();
         char* cpy = new char[buff.length()+1];
@@ -61,10 +67,10 @@ void parse(std::vector<std::string> sms, const char* file){
                 newWord += cpy[i];
             }
         }
-        sms.pop_back();
+        sms.pop();
     }
 
-    int index = 0;
+    long int index = 0;
 
     while(index < words.size()){
         if(words[index] == "\0"){
@@ -80,7 +86,7 @@ void parse(std::vector<std::string> sms, const char* file){
                     words[i] = "\0";
                 }
             }
-            wordsCount.push_back(word_);
+            wordsCount.push(word_);
             index++;
         }
     }
@@ -92,7 +98,7 @@ void parse(std::vector<std::string> sms, const char* file){
     while(!wordsCount.empty()){
         WORD word_ = wordsCount.front();
         fout << word_.word << "," << word_.count << std::endl;
-        wordsCount.pop_back();
+        wordsCount.pop();
     }
     fout.close();
 }
