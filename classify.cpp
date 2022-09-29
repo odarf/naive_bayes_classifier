@@ -46,7 +46,6 @@ void Classifier::readProbabilityFile(std::ifstream &fin, std::vector<WORD> &word
         WORD word_;
         word_.word = word;
         word_.count = atoi(tempCount.c_str());
-
         words.push_back(word_);
     }
     fin.close();
@@ -146,13 +145,11 @@ void Classifier::naiveBayesClassifier(long int totalHamCount,long int totalSpamC
 
         if (spamProb < hamProb) {
             compareWithTrainData(temp, "ham") ? TP++ : FP++;
-            fout << "[ham]  |" << temp << std::endl;
+            fout << "[ham]  | " << temp << std::endl;
         } else if (spamProb > hamProb) {
             compareWithTrainData(temp, "spam") ? TN++ : FN++;
-            fout << "[spam] |" << temp << std::endl;
-        }/*else{
-            std::cout << "WTF???" << " spam: " << spamProb << ", ham: " << hamProb << std::endl;
-        }*/
+            fout << "[spam] | " << temp << std::endl;
+        }
         sms_.pop();
     }
     printf("=> TP: %d, FP: %d, TN: %d, FN: %d\n", TP, FP, TN, FN);

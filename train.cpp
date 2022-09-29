@@ -37,7 +37,8 @@ void Trainer::readFile(const char* fileName){
          spamCount++;
      }
  }
- std::cout << "=> Done reading file, ham words count is: " << hamCount << ", spam words count is: " << spamCount << std::endl;
+ std::cout << "=> Done reading file, ham SMS count is: " << hamCount
+                               << ", spam SMS count is: " << spamCount << std::endl;
  fin.close();
 }
 
@@ -93,7 +94,7 @@ void Trainer::writeFile(std::queue<std::string> sms, const char* file){
     std::ofstream fout(file);
     totalWordCount = (long int)wordsCount.size();
     fout << totalWordCount << std::endl;
-    //WORD word_ = wordsCount.front();
+//WORD word_ = wordsCount.front();
     while(!wordsCount.empty()){
         WORD word_ = wordsCount.front();
         fout << word_.word << "," << word_.count << std::endl;
