@@ -10,12 +10,9 @@
 
 class Classifier{
 private:
-    int TP{}, TN{}, FP{}, FN{};
-    float accuracy{}, precision{}, recall{}, beta{}, f1_score{};
-    std::vector<int> accuracies;
-    std::vector<int> precisions;
-    std::vector<int> recalls;
-    std::vector<double> f1_scores;
+    int TP, TN, FP, FN;
+    double accuracy, precision, recall, beta, f1_score;
+    std::vector<double> accuracies, precisions, recalls, f1_scores;
 public:
     struct WORD{
         std::string word;

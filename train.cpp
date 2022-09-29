@@ -21,7 +21,7 @@ void Trainer::readFile(const char* fileName){
  getline(fin, newSMS);
  newSMS.clear();
 
- std::cout << "Starting while loop" << std::endl;
+ std::cout << "=> Starting while loop" << std::endl;
  while(!fin.eof()){
      getline(fin, type, ',');
      getline(fin, newSMS);
@@ -37,12 +37,12 @@ void Trainer::readFile(const char* fileName){
          spamCount++;
      }
  }
- std::cout << "Done reading file, ham words count is: " << hamCount << ", spam words count is: " << spamCount << std::endl;
+ std::cout << "=> Done reading file, ham words count is: " << hamCount << ", spam words count is: " << spamCount << std::endl;
  fin.close();
 }
 
 void Trainer::writeFile(std::queue<std::string> sms, const char* file){
-    std::cout << "Now writing " << file << std::endl;
+    std::cout << "=> Now writing " << file << std::endl;
     std::vector<std::string> words;
     std::queue<WORD> wordsCount;
     long int totalWordCount;

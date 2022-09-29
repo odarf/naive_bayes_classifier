@@ -78,98 +78,93 @@ void Classifier::naiveBayesClassifier(long int totalHamCount,long int totalSpamC
     std::vector<std::string> hamSMS;
 
     std::ofstream fout(file);
-    std::cout << sms.size() << std::endl;
+    std::cout << "=> SMS size: " <<sms.size() << std::endl;
 
-    for(int _ = 0; _ < 1; ++_) {
-        std::queue<std::string> sms_ = sms;
-        TP = 0;
-        TN = 0;
-        FP = 0;
-        FN = 0;
-        while (!sms_.empty()) {
-            std::vector<std::string> words;
-            std::vector<float> wordSpamProbabilities;
-            std::vector<float> wordHamProbabilities;
+    std::queue<std::string> sms_ = sms;
+    TP = 0;
+    TN = 0;
+    FP = 0;
+    FN = 0;
+    while (!sms_.empty()) {
+        std::vector<std::string> words;
+        std::vector<float> wordSpamProbabilities;
+        std::vector<float> wordHamProbabilities;
 
-            parseSMS(sms_.front(), words);
-            // Conditional probabilities
-            // 1. P(word) = count(word) / (total_words)
-            // 2. P(spam | word) = (P(word | spam) * P(spam)) / P(word)
-            // 3. P(spam | sms) = P(spam | word_1) * P(spam | word_2) * ...
-            // 4. MAX(P(spam | sms), P(ham | sms))
-            // 5. Classify based on max
+        parseSMS(sms_.front(), words);
+        // Conditional probabilities
+        // 1. P(word) = count(word) / (total_words)
+        // 2. P(spam | word) = (P(word | spam) * P(spam)) / P(word)
+        // 3. P(spam | sms) = P(spam | word_1) * P(spam | word_2) * ...
+        // 4. MAX(P(spam | sms), P(ham | sms))
+        // 5. Classify based on max
 
-            for (auto &word: words) {
-                WORD newWord;
-                float spamWordCount = 0;
-                float hamWordCount = 0;
+        for (auto &word: words) {
+            WORD newWord;
+            float spamWordCount = 0;
+            float hamWordCount = 0;
 
-                for (int j = 0; j < spam.size(); ++j) {
-                    newWord = spam[j];
+            for (int j = 0; j < spam.size(); ++j) {
+                newWord = spam[j];
 
-                    if (word == newWord.word) {
-                        spamWordCount = newWord.count;
-                        j = spam.size();
-                    }
+                if (word == newWord.word) {
+                    spamWordCount = newWord.count;
+                    j = spam.size();
                 }
-                for (int j = 0; j < ham.size(); ++j) {
-                    newWord = ham[j];
+            }
+            for (int j = 0; j < ham.size(); ++j) {
+                newWord = ham[j];
 
-                    if (word == newWord.word) {
-                        hamWordCount = newWord.count;
-                        j = ham.size();
-                    }
+                if (word == newWord.word) {
+                    hamWordCount = newWord.count;
+                    j = ham.size();
                 }
-
-                float spamProb = (((spamWordCount / (float)totalSpamCount) * spamProbability) /
-                        ((spamWordCount + hamWordCount) / (totalSpamCount + totalHamCount)));
-
-                wordSpamProbabilities.push_back(spamProb);
-
-                float hamProb = (((hamWordCount / (float)totalHamCount) * hamProbability) /
-                        ((spamWordCount + hamWordCount) / (totalSpamCount + totalHamCount)));
-
-                wordHamProbabilities.push_back(hamProb);
             }
 
-            //Max and classify
-            float hamProb = 0;
-            for (float i: wordHamProbabilities) {
-                hamProb += i;
-            }
+            float spamProb = (((spamWordCount / (float)totalSpamCount) * spamProbability) /
+                    ((spamWordCount + hamWordCount) / (totalSpamCount + totalHamCount)));
 
-            float spamProb = 0.0;
-            for (float i: wordSpamProbabilities) {
-                spamProb += i;
-            }
+            wordSpamProbabilities.push_back(spamProb);
 
-            std::string temp = sms_.front();
+            float hamProb = (((hamWordCount / (float)totalHamCount) * hamProbability) /
+                    ((spamWordCount + hamWordCount) / (totalSpamCount + totalHamCount)));
 
-            /*for (int i = 0; i <= 3; ++i) {
-                temp[temp.length()-i] = ' ';
-            }*/
-            if (spamProb < hamProb) {
-                compareWithTrainData(temp, "ham") ? TP++ : FP++;
-                fout << "[ham]  |" << temp << std::endl;
-            } else if (spamProb > hamProb) {
-                compareWithTrainData(temp, "spam") ? TN++ : FN++;
-                fout << "[spam] |" << temp << std::endl;
-            }/*else{
-                std::cout << "WTF???" << " spam: " << spamProb << ", ham: " << hamProb << std::endl;
-            }*/
-            sms_.pop();
+            wordHamProbabilities.push_back(hamProb);
         }
-        //printf("For: %i | TP: %i, FP: %i, TN: %i, FN: %i\n", _, TP, FP, TN, FN);
-        accuracy = (TP+TN)/** 100*//(TP+TN+FP+FN);
-        precision = TP/* * 100*//(TP+FP);
-        recall = TP/* * 100*//(TP+FN);
-        beta = 1;
-        f1_score = (1 + pow(beta, 2)) * (precision * recall) / (pow(beta, 2) * precision + recall);
-        accuracies.push_back(accuracy);
-        precisions.push_back(precision);
-        recalls.push_back(recall);
-        f1_scores.push_back(f1_score);
+
+        //Max and classify
+        float hamProb = 0;
+        for (float i: wordHamProbabilities) {
+            hamProb += i;
+        }
+
+        float spamProb = 0.0;
+        for (float i: wordSpamProbabilities) {
+            spamProb += i;
+        }
+
+        std::string temp = sms_.front();
+
+        if (spamProb < hamProb) {
+            compareWithTrainData(temp, "ham") ? TP++ : FP++;
+            fout << "[ham]  |" << temp << std::endl;
+        } else if (spamProb > hamProb) {
+            compareWithTrainData(temp, "spam") ? TN++ : FN++;
+            fout << "[spam] |" << temp << std::endl;
+        }/*else{
+            std::cout << "WTF???" << " spam: " << spamProb << ", ham: " << hamProb << std::endl;
+        }*/
+        sms_.pop();
     }
+    printf("=> TP: %d, FP: %d, TN: %d, FN: %d\n", TP, FP, TN, FN);
+    accuracy = (double)(TP+TN)/(double)(TP+TN+FP+FN);
+    precision = (double)TP/(double)(TP+FP);
+    recall = (double)TP/(double)(TP+FN);
+    beta = 1;
+    f1_score = (1 + pow(beta, 2)) * (precision * recall) / (pow(beta, 2) * precision + recall);
+    accuracies.push_back(accuracy);
+    precisions.push_back(precision);
+    recalls.push_back(recall);
+    f1_scores.push_back(f1_score);
     fout.close();
 }
 
@@ -193,11 +188,15 @@ bool Classifier::compareWithTrainData(std::string sms, std::string type){
 }
 
 void Classifier::getMetrix(){
-    printf("Average scores: \n Accuracy: %lu \n Precision: %lu \n Recall: %lu \n F1_Score: %f \n",
-           std::accumulate(accuracies.begin(), accuracies.end(), 0) / accuracies.size(),
-           std::accumulate(precisions.begin(), precisions.end(), 0) / precisions.size(),
-           std::accumulate(recalls.begin(), recalls.end(), 0) / recalls.size(),
-           std::accumulate(f1_scores.begin(), f1_scores.end(), 0.0) / f1_scores.size());
+    double acc = std::accumulate(accuracies.begin(), accuracies.end(), 0.0) / (double)(accuracies.size());
+    double prec = std::accumulate(precisions.begin(), precisions.end(), 0.0) / (double)(precisions.size());
+    double rec = std::accumulate(recalls.begin(), recalls.end(), 0.0) / (double)(recalls.size());
+    double f1 = std::accumulate(f1_scores.begin(), f1_scores.end(), 0.0) / (double)(f1_scores.size());
+    std::cout << "=> Average scores: \n - Accuracy: " << acc << "\n - Precision: " << prec << "\n - Recall: "
+    << rec <<"\n - F1_Score: " << f1 << std::endl;
+    /*printf("=> Average scores: \n - Accuracy: %f \n - Precision: %f \n - Recall: %f \n - F1_Score: %f \n",
+           acc, prec, rec, f1);*/
+
 }
 
 void Classifier::parseSMS(std::string sms, std::vector<std::string> &words){
