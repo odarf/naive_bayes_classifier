@@ -30,11 +30,12 @@ int main(){
     Trainer trainer;
     Classifier classifier;
     for(int i = 0; i < 3; ++i){
+        std::cout << "=========" << i << "=========" << std::endl;
         splitData();
         trainer.train("train.txt");
         classifier.classify();
-        classifier.getMetrix();
     }
+    classifier.getMetrix();
     return 0;
 }
 

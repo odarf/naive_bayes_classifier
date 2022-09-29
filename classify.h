@@ -11,7 +11,7 @@
 class Classifier{
 private:
     int TP{}, TN{}, FP{}, FN{};
-    double accuracy{}, precision{}, recall{}, beta{}, f1_score{};
+    float accuracy{}, precision{}, recall{}, beta{}, f1_score{};
     std::vector<int> accuracies;
     std::vector<int> precisions;
     std::vector<int> recalls;

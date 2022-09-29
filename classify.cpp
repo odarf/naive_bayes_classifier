@@ -159,10 +159,10 @@ void Classifier::naiveBayesClassifier(long int totalHamCount,long int totalSpamC
             }*/
             sms_.pop();
         }
-        printf("For: %i | TP: %i, FP: %i, TN: %i, FN: %i\n", _, TP, FP, TN, FN);
-        accuracy = (TP+TN)* 100/(TP+TN+FP+FN);
-        precision = TP * 100/(TP+FP);
-        recall = TP * 100/(TP+FN);
+        //printf("For: %i | TP: %i, FP: %i, TN: %i, FN: %i\n", _, TP, FP, TN, FN);
+        accuracy = (TP+TN)/** 100*//(TP+TN+FP+FN);
+        precision = TP/* * 100*//(TP+FP);
+        recall = TP/* * 100*//(TP+FN);
         beta = 1;
         f1_score = (1 + pow(beta, 2)) * (precision * recall) / (pow(beta, 2) * precision + recall);
         accuracies.push_back(accuracy);
