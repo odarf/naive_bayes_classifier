@@ -1,6 +1,9 @@
+#include <random>
 #include "classify.h"
 
+// ./class TRAIN_DATA DATA_PERCENT SPAM_PROBS HAM_PROBS OUTPUT
 int main(int argc, char const *argv[]){
+    int DATA_PERCENT = 40;
     long int totalSpamCount;
     long int totalHamCount;
 
@@ -24,7 +27,7 @@ int main(int argc, char const *argv[]){
     //fin.open(argv[1]);
     fin.open("spam.csv");
 
-    readTestFile(fin, sms);
+    readTestFile(fin, sms, DATA_PERCENT);
     // output
     naiveBayesClassifier(totalHamCount, totalSpamCount, sms, spam, ham, "classed.txt");//argv[4]);
 
@@ -51,24 +54,38 @@ void readProbabilityFile(std::ifstream &fin, std::vector<WORD> &words, long int 
     fin.close();
 }
 
-void readTestFile(std::ifstream &fin, std::queue<std::string> &sms){
+void readTestFile(std::ifstream &fin, std::queue<std::string> &sms, int DATA_PERCENT){
     std::string buff;
     std::string newSMS;
 
     getline(fin, newSMS);
     newSMS.clear();
 
+    std::default_random_engine engine{std::random_device()()};
+    std::uniform_int_distribution<int> rand{1, 100};
+
     while(!fin.eof()){
         getline(fin, buff, ',');
         getline(fin, newSMS);
-        sms.push(newSMS);
-        newSMS.clear();
+        int r = rand(engine);
+        if(r <= DATA_PERCENT){
+            sms.push(newSMS);
+            newSMS.clear();
+        }else{
+            newSMS.clear();
+            continue;
+        }
     }
     fin.close();
 }
 
 void naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::queue<std::string> &sms, std::vector<WORD> &spam,
                           std::vector<WORD> &ham, const char* file){
+    int TP = 0;
+    int TN = 0;
+    int FP = 0;
+    int FN = 0;
+
     // P(class_1) = count(class_1) / (count(class_1) + count(class_2)
     float spamP = ((float)totalSpamCount/(float)(totalSpamCount + totalHamCount));
     float hamP = ((float)totalHamCount/(float)(totalHamCount + totalSpamCount));
@@ -78,9 +95,7 @@ void naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::q
 
     std::ofstream fout(file);
     std::cout << sms.size() << std::endl;
-    int counter = 0;
     while(!sms.empty()){
-        std::cout << counter << " " << sms.size() << std::endl;
         std::vector<std::string> words;
         std::vector<float> wordSpamP;
         std::vector<float> wordHamP;
@@ -92,7 +107,7 @@ void naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::q
         // 4. MAX(P(spam | sms), P(ham | sms))
         // 5. Classify based on max
 
-        for (int i = 0; i < words.size(); ++i) {
+        for(auto & word : words) {
             WORD newWord;
             float spamWordCount = 0;
             float hamWordCount = 0;
@@ -100,17 +115,17 @@ void naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::q
             for (int j = 0; j < spam.size(); ++j) {
                 newWord = spam[j];
 
-                if(words[i] == newWord.word){
-                    spamWordCount = newWord.count;
-                    j = spam.size();
+                if(word == newWord.word){
+                    spamWordCount = (float)newWord.count;
+                    j = (int)spam.size();
                 }
             }
             for (int j = 0; j < ham.size(); ++j) {
                 newWord = ham[j];
 
-                if(words[i] == newWord.word){
-                    hamWordCount = newWord.count;
-                    j = ham.size();
+                if(word == newWord.word){
+                    hamWordCount = (float)newWord.count;
+                    j = (int)ham.size();
                 }
             }
 
@@ -138,18 +153,31 @@ void naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::q
             temp[temp.length()-i] = ' ';
         }*/
         if(spamProb < hamProb){
-            counter++;
-            fout << temp << "==> ham with P = " << 100.0-spamProb << std::endl;
+            fout << "ham," << temp << std::endl;
         }else if(spamProb > hamProb){
-            counter++;
-            fout << temp << "==> spam with P = " << 100.0-hamProb << std::endl;
-        }else{
-            fout << temp << "=> WTF" << std::endl;
+            fout << "spam," << temp << std::endl;
         }
         //fout << " " << std::endl;
         sms.pop();
     }
     fout.close();
+}
+
+bool findSmsInTrainData(std::string sms){
+    /* Ищем сообщение в spam.csv, берём первые 4 символа, если class == "ham," или "spam"
+    */
+    bool ret = false;
+    std::fstream file("spam.csv");
+    std::string str, type;
+    while(getline(file, str)){
+        getline(file, type, ',');
+        if(sms==str){
+            ret = true;
+            break;
+        }
+    }
+    file.close();
+    return ret;
 }
 
 void parseSMS(std::string sms, std::vector<std::string> &words){

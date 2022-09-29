@@ -1,9 +1,11 @@
 #include <cstring>
-#include <chrono>
 #include <thread>
+#include <random>
 #include "train.h"
 
+// ./train TRAIN_DATA DATA_PERCENT HAM_OUTPUT SPAM_OUTPUT
 int main(int argc, char const *argv[]){
+ int DATA_PERCENT = atoi(argv[2]);
  std::queue<std::string> hamSMS;
  std::queue<std::string> spamSMS;
 
@@ -11,39 +13,45 @@ int main(int argc, char const *argv[]){
  long int hamCount = 0;
  std::string type;
  std::string newSMS;
- std::cout << "Created variables, starting ifstream" << std::endl;
  std::ifstream fin(argv[1]);
- std::cout << "Done ifstream, starting getline" << std::endl;
  getline(fin, newSMS);
- std::cout << "Done getline" << std::endl;
  newSMS.clear();
+
+ std::default_random_engine engine{std::random_device()()};
+ std::uniform_int_distribution<int> rand{1, 100};
 
  std::cout << "Starting while loop" << std::endl;
  while(!fin.eof()){
+     int r = rand(engine);
+     std::cout << r << std::endl;
      getline(fin, type, ',');
      getline(fin, newSMS);
-     if(type == "ham"){
-         hamSMS.push(newSMS);
-         type.clear();
-         newSMS.clear();
-         hamCount++;
-     }else if(type == "spam"){
-         spamSMS.push(newSMS);
-         type.clear();
-         newSMS.clear();
-         spamCount++;
+     if(r < DATA_PERCENT){
+         if(type == "ham"){
+             hamSMS.push(newSMS);
+             type.clear();
+             newSMS.clear();
+             hamCount++;
+         }else if(type == "spam"){
+             spamSMS.push(newSMS);
+             type.clear();
+             newSMS.clear();
+             spamCount++;
+         }
+     }else{
+         continue;
      }
-     std::cout << "End of loop, ham count is: " << hamCount << ", spam count is: " << spamCount << std::endl;
  }
+ std::cout << "End of loop, ham count is: " << hamCount << ", spam count is: " << spamCount << std::endl;
  fin.close();
- parse(hamSMS, argv[2]);
- parse(spamSMS, argv[3]);
+ writeFile(hamSMS, argv[3]);
+ writeFile(spamSMS, argv[4]);
 
  return 0;
 }
 
-void parse(std::queue<std::string> sms, const char* file){
-    std::cout << "In parse now..." << std::endl;
+void writeFile(std::queue<std::string> sms, const char* file){
+    std::cout << "Now writing " << file << std::endl;
     std::vector<std::string> words;
     std::queue<WORD> wordsCount;
     long int totalWordCount = 0;
