@@ -1,3 +1,6 @@
+#ifndef TRAIN_H
+#define TRAIN_H
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -9,4 +12,13 @@ struct WORD{
     long int count;
 };
 
-void writeFile(std::queue<std::string> sms, const char*);
+class Train{
+private:
+public:
+    Train();
+    void writeFile(std::queue<std::string> sms, const char*);
+};
+
+//void writeFile(std::queue<std::string> sms, const char*);
+
+#endif // TRAIN_H

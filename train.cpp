@@ -4,6 +4,16 @@
 #include "train.h"
 
 // ./train TRAIN_DATA DATA_PERCENT HAM_OUTPUT SPAM_OUTPUT
+
+Train::Train(){
+    std::queue<std::string> hamSMS;
+    std::queue<std::string> spamSMS;
+    long int spamCount = 0;
+    long int hamCount = 0;
+    std::string type;
+    std::string newSMS;
+}
+
 int main(int argc, char const *argv[]){
  int DATA_PERCENT = atoi(argv[2]);
  std::queue<std::string> hamSMS;
@@ -26,7 +36,7 @@ int main(int argc, char const *argv[]){
      std::cout << r << std::endl;
      getline(fin, type, ',');
      getline(fin, newSMS);
-     if(r < DATA_PERCENT){
+     if(r < 40){
          if(type == "ham"){
              hamSMS.push(newSMS);
              type.clear();
@@ -50,7 +60,7 @@ int main(int argc, char const *argv[]){
  return 0;
 }
 
-void writeFile(std::queue<std::string> sms, const char* file){
+void Train::writeFile(std::queue<std::string> sms, const char* file){
     std::cout << "Now writing " << file << std::endl;
     std::vector<std::string> words;
     std::queue<WORD> wordsCount;
