@@ -4,7 +4,7 @@
 #include "classify.h"
 
 void splitData(){
-    std::cout << "=> Started splitting file\n";
+    std::cout << "=> Splitting file\n";
     std::string temp;
     std::default_random_engine engine{std::random_device()()};
     std::uniform_int_distribution<int> rand{1, 100};
@@ -23,7 +23,6 @@ void splitData(){
     }
     foutTrain.close();
     foutTest.close();
-    std::cout << "=> Done splitting file\n";
 }
 
 int main(){

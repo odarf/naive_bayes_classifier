@@ -3,7 +3,6 @@
 #include <numeric>
 #include "classify.h"
 
-// ./class TRAIN_DATA DATA_PERCENT SPAM_PROBS HAM_PROBS OUTPUT
 Classifier::Classifier()= default;
 
 void Classifier::classify(){

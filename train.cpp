@@ -2,8 +2,6 @@
 #include <thread>
 #include "train.h"
 
-// ./train TRAIN_DATA DATA_PERCENT HAM_OUTPUT SPAM_OUTPUT
-
 Trainer::Trainer() = default;
 
 void Trainer::train(const char* fileName){
@@ -21,7 +19,6 @@ void Trainer::readFile(const char* fileName){
  getline(fin, newSMS);
  newSMS.clear();
 
- std::cout << "=> Starting while loop" << std::endl;
  while(!fin.eof()){
      getline(fin, type, ',');
      getline(fin, newSMS);
@@ -43,7 +40,7 @@ void Trainer::readFile(const char* fileName){
 }
 
 void Trainer::writeFile(std::queue<std::string> sms, const char* file){
-    std::cout << "=> Now writing " << file << std::endl;
+    std::cout << "=> Writing " << file << std::endl;
     std::vector<std::string> words;
     std::queue<WORD> wordsCount;
     long int totalWordCount;
