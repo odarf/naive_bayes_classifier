@@ -3,9 +3,9 @@ project(naive_bayes_classifier)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(train
+add_executable(nbc_v0.0.1
         train.h
-        train.cpp)
-add_executable(class
+        train.cpp
         classify.h
-        classify.cpp)
+        classify.cpp
+        main.cpp)

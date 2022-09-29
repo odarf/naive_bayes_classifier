@@ -3,10 +3,10 @@
 #include <numeric>
 #include "classify.h"
 
-int DATA_PERCENT = 100;
 // ./class TRAIN_DATA DATA_PERCENT SPAM_PROBS HAM_PROBS OUTPUT
-int main(int argc, char const *argv[]){
+Classifier::Classifier()= default;
 
+void Classifier::classify(){
     long int totalSpamCount;
     long int totalHamCount;
 
@@ -16,28 +16,23 @@ int main(int argc, char const *argv[]){
 
     std::string word;
     std::string count;
-    // spam prob
-    //std::ifstream fin(argv[2]);
+
     std::ifstream fin("spam.txt");
 
     readProbabilityFile(fin, spam ,totalSpamCount);
-    // ham prob
-    //fin.open(argv[3]);
+
     fin.open("ham.txt");
 
     readProbabilityFile(fin, ham, totalHamCount);
-    //test
-    //fin.open(argv[1]);
-    fin.open("spam.csv");
 
-    readTestFile(fin, sms, DATA_PERCENT);
+    fin.open("test.txt");
+
+    readTestFile(fin, sms);
     // output
     naiveBayesClassifier(totalHamCount, totalSpamCount, sms, spam, ham, "classed.txt");//argv[4]);
-
-    return 0;
 }
 
-void readProbabilityFile(std::ifstream &fin, std::vector<WORD> &words, long int &count){
+void Classifier::readProbabilityFile(std::ifstream &fin, std::vector<WORD> &words, long int &count){
     std::string tempTotalCount;
     std::string tempCount;
     std::string word;
@@ -57,41 +52,27 @@ void readProbabilityFile(std::ifstream &fin, std::vector<WORD> &words, long int 
     fin.close();
 }
 
-void readTestFile(std::ifstream &fin, std::queue<std::string> &sms, int DATA_PERCENT){
+void Classifier::readTestFile(std::ifstream &fin, std::queue<std::string> &sms){
     std::string buff;
     std::string newSMS;
 
     getline(fin, newSMS);
     newSMS.clear();
 
-    std::default_random_engine engine{std::random_device()()};
-    std::uniform_int_distribution<int> rand{1, 100};
-
     while(!fin.eof()){
         getline(fin, buff, ',');
         getline(fin, newSMS);
-        int r = rand(engine);
-        if(r <= DATA_PERCENT){
-            sms.push(newSMS);
-            newSMS.clear();
-        }else{
-            newSMS.clear();
-            continue;
-        }
+        sms.push(newSMS);
+        newSMS.clear();
     }
     fin.close();
 }
 
-void naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::queue<std::string> &sms, std::vector<WORD> &spam,
+void Classifier::naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::queue<std::string> &sms, std::vector<WORD> &spam,
                           std::vector<WORD> &ham, const char* file){
     // P(class_1) = count(class_1) / (count(class_1) + count(class_2)
     float spamProbability = (float)(totalSpamCount/(float)(totalSpamCount + totalHamCount));
     float hamProbability = (float)(totalHamCount/(float)(totalHamCount + totalSpamCount));
-
-    std::vector<int> accuracies;
-    std::vector<int> precisions;
-    std::vector<int> recalls;
-    std::vector<double> f1_scores;
 
     std::vector<std::string> spamSMS;
     std::vector<std::string> hamSMS;
@@ -99,10 +80,7 @@ void naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::q
     std::ofstream fout(file);
     std::cout << sms.size() << std::endl;
 
-    int TP, TN, FP, FN;
-    int accuracy, precision, recall, beta;
-    double f1_score;
-    for(int _ = 0; _ < 10; ++_) {
+    for(int _ = 0; _ < 1; ++_) {
         std::queue<std::string> sms_ = sms;
         TP = 0;
         TN = 0;
@@ -172,19 +150,19 @@ void naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::q
             }*/
             if (spamProb < hamProb) {
                 compareWithTrainData(temp, "ham") ? TP++ : FP++;
-                fout << "ham," << temp << std::endl;
+                fout << "[ham]  |" << temp << std::endl;
             } else if (spamProb > hamProb) {
                 compareWithTrainData(temp, "spam") ? TN++ : FN++;
-                fout << "spam," << temp << std::endl;
+                fout << "[spam] |" << temp << std::endl;
             }/*else{
                 std::cout << "WTF???" << " spam: " << spamProb << ", ham: " << hamProb << std::endl;
             }*/
             sms_.pop();
         }
         printf("For: %i | TP: %i, FP: %i, TN: %i, FN: %i\n", _, TP, FP, TN, FN);
-        accuracy = (TP+TN)/(TP+TN+FP+FN);
-        precision = TP/(TP+FP);
-        recall = TP/(TP+FN);
+        accuracy = (TP+TN)* 100/(TP+TN+FP+FN);
+        precision = TP * 100/(TP+FP);
+        recall = TP * 100/(TP+FN);
         beta = 1;
         f1_score = (1 + pow(beta, 2)) * (precision * recall) / (pow(beta, 2) * precision + recall);
         accuracies.push_back(accuracy);
@@ -193,15 +171,9 @@ void naiveBayesClassifier(long int totalHamCount,long int totalSpamCount, std::q
         f1_scores.push_back(f1_score);
     }
     fout.close();
-    std::cout << "Near printf" << std::endl;
-    printf("Average scores: \n Accuracy: %lu \n Precision: %lu \n Recall: %lu \n F1_Score: %f",
-           std::accumulate(accuracies.begin(), accuracies.end(), 0) / accuracies.size(),
-           std::accumulate(precisions.begin(), precisions.end(), 0) / precisions.size(),
-           std::accumulate(recalls.begin(), recalls.end(), 0) / recalls.size(),
-           std::accumulate(f1_scores.begin(), f1_scores.end(), 0.0) / f1_scores.size());
 }
 
-bool compareWithTrainData(std::string sms, std::string type){
+bool Classifier::compareWithTrainData(std::string sms, std::string type){
     bool ret = false;
     std::fstream file("spam.csv");
     std::string str, type_;
@@ -217,11 +189,18 @@ bool compareWithTrainData(std::string sms, std::string type){
         str.clear();
     }
     file.close();
-    //std::cout << "Ret is:" << ret << std::endl;
     return ret;
 }
 
-void parseSMS(std::string sms, std::vector<std::string> &words){
+void Classifier::getMetrix(){
+    printf("Average scores: \n Accuracy: %lu \n Precision: %lu \n Recall: %lu \n F1_Score: %f \n",
+           std::accumulate(accuracies.begin(), accuracies.end(), 0) / accuracies.size(),
+           std::accumulate(precisions.begin(), precisions.end(), 0) / precisions.size(),
+           std::accumulate(recalls.begin(), recalls.end(), 0) / recalls.size(),
+           std::accumulate(f1_scores.begin(), f1_scores.end(), 0.0) / f1_scores.size());
+}
+
+void Classifier::parseSMS(std::string sms, std::vector<std::string> &words){
     if(sms.empty())
         return;
 

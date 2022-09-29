@@ -1,70 +1,51 @@
 #include <cstring>
 #include <thread>
-#include <random>
 #include "train.h"
 
 // ./train TRAIN_DATA DATA_PERCENT HAM_OUTPUT SPAM_OUTPUT
 
-Train::Train(){
-    std::queue<std::string> hamSMS;
-    std::queue<std::string> spamSMS;
-    long int spamCount = 0;
-    long int hamCount = 0;
-    std::string type;
-    std::string newSMS;
+Trainer::Trainer() = default;
+
+void Trainer::train(const char* fileName){
+    readFile(fileName);
+    writeFile(hamSMS, "ham.txt");
+    writeFile(spamSMS, "spam.txt");
 }
 
-int main(int argc, char const *argv[]){
- int DATA_PERCENT = atoi(argv[2]);
- std::queue<std::string> hamSMS;
- std::queue<std::string> spamSMS;
-
+void Trainer::readFile(const char* fileName){
  long int spamCount = 0;
  long int hamCount = 0;
  std::string type;
  std::string newSMS;
- std::ifstream fin(argv[1]);
+ std::ifstream fin(fileName);
  getline(fin, newSMS);
  newSMS.clear();
 
- std::default_random_engine engine{std::random_device()()};
- std::uniform_int_distribution<int> rand{1, 100};
-
  std::cout << "Starting while loop" << std::endl;
  while(!fin.eof()){
-     int r = rand(engine);
-     std::cout << r << std::endl;
      getline(fin, type, ',');
      getline(fin, newSMS);
-     if(r < 40){
-         if(type == "ham"){
-             hamSMS.push(newSMS);
-             type.clear();
-             newSMS.clear();
-             hamCount++;
-         }else if(type == "spam"){
-             spamSMS.push(newSMS);
-             type.clear();
-             newSMS.clear();
-             spamCount++;
-         }
-     }else{
-         continue;
+     if(type == "ham"){
+       hamSMS.push(newSMS);
+       type.clear();
+       newSMS.clear();
+       hamCount++;
+     }else if(type == "spam"){
+         spamSMS.push(newSMS);
+         type.clear();
+         newSMS.clear();
+         spamCount++;
      }
  }
- std::cout << "End of loop, ham count is: " << hamCount << ", spam count is: " << spamCount << std::endl;
+ std::cout << "Done reading file, ham words count is: " << hamCount << ", spam words count is: " << spamCount << std::endl;
  fin.close();
- writeFile(hamSMS, argv[3]);
- writeFile(spamSMS, argv[4]);
-
- return 0;
 }
 
-void Train::writeFile(std::queue<std::string> sms, const char* file){
+void Trainer::writeFile(std::queue<std::string> sms, const char* file){
     std::cout << "Now writing " << file << std::endl;
     std::vector<std::string> words;
     std::queue<WORD> wordsCount;
-    long int totalWordCount = 0;
+    long int totalWordCount;
     while(!sms.empty()){
         std::string buff = sms.front();
         char* cpy = new char[buff.length()+1];
@@ -98,10 +79,10 @@ void Train::writeFile(std::queue<std::string> sms, const char* file){
             word_.word = words[index];
             word_.count = 0;
 
-            for(int i = 0; i < words.size(); ++i) {
-                if(word_.word == words[i]){
+            for(auto & word : words) {
+                if(word_.word == word){
                     word_.count++;
-                    words[i] = "\0";
+                    word = "\0";
                 }
             }
             wordsCount.push(word_);
@@ -110,9 +91,9 @@ void Train::writeFile(std::queue<std::string> sms, const char* file){
     }
 
     std::ofstream fout(file);
-    totalWordCount = wordsCount.size();
+    totalWordCount = (long int)wordsCount.size();
     fout << totalWordCount << std::endl;
-    WORD word_ = wordsCount.front();
+    //WORD word_ = wordsCount.front();
     while(!wordsCount.empty()){
         WORD word_ = wordsCount.front();
         fout << word_.word << "," << word_.count << std::endl;
