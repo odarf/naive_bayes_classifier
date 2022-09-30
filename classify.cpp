@@ -18,11 +18,11 @@ void Classifier::classify(){
 
     std::ifstream fin("spam.txt");
 
-    readProbabilityFile(fin, spam ,totalSpamCount);
+    readProbabilityFile(fin, spam ,totalSpamCount, 5);
 
     fin.open("ham.txt");
 
-    readProbabilityFile(fin, ham, totalHamCount);
+    readProbabilityFile(fin, ham, totalHamCount, 10);
 
     fin.open("test.txt");
 
@@ -31,7 +31,7 @@ void Classifier::classify(){
     naiveBayesClassifier(totalHamCount, totalSpamCount, sms, spam, ham, "classed.txt");//argv[4]);
 }
 
-void Classifier::readProbabilityFile(std::ifstream &fin, std::vector<WORD> &words, long int &count){
+void Classifier::readProbabilityFile(std::ifstream &fin, std::vector<WORD> &words, long int &count, int n){
     std::string tempTotalCount;
     std::string tempCount;
     std::string word;
@@ -43,9 +43,12 @@ void Classifier::readProbabilityFile(std::ifstream &fin, std::vector<WORD> &word
         getline(fin, tempCount);
 
         WORD word_;
-        word_.word = word;
-        word_.count = atoi(tempCount.c_str());
-        words.push_back(word_);
+        //playing with this tiny const
+        if(10 > atoi(tempCount.c_str())){
+            word_.word = word;
+            word_.count = atoi(tempCount.c_str());
+            words.push_back(word_);
+        }
     }
     fin.close();
 }
